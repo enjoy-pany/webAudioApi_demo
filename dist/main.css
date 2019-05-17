@@ -1,0 +1,9 @@
+body {
+    background-color: #333
+}
+.logo {
+    width: 500px;
+    height: 300px;
+    background: url(../image/efe29dbe53359c0804fda26eaa60ad36.jpeg);
+    background-size: 100%;
+}

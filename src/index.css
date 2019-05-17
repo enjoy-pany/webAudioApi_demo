@@ -1,0 +1,11 @@
+body {
+    background-color: #fefefe
+}
+.btn {
+    width: 60px;
+    height: 30px;
+    border: 2px green solid;
+    line-height: 30px;
+    text-align: center;
+    cursor: pointer;
+}
