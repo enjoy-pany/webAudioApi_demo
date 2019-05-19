@@ -1,11 +1,36 @@
 body {
     background-color: #fefefe
 }
+.audioPlayer {
+    width: 500px;
+    height: 375px;
+    position: relative;
+}
+.audioPlayer .playerWrap {
+    width: 100%;
+    height: 100%;
+}
+.playerWrap img {
+    width: 100%;
+    height: auto;
+}
+.playerBtn {
+    width: 100%;
+    height: auto;
+    position: absolute;
+    bottom: 5px;
+    left: 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
 .btn {
     width: 60px;
     height: 30px;
-    border: 2px green solid;
+    border: 2px #fff solid;
     line-height: 30px;
     text-align: center;
     cursor: pointer;
+    margin: 0 5px;
+    border-radius: 4px;
 }

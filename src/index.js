@@ -2,11 +2,11 @@ import './index.css';
 
 window.onload = function() {
 
-    var audio = document.getElementById("audio");
-    var playBtn = document.getElementById("play");
-    var pauseBtn = document.getElementById("pause");
-    var audioContext;
-    var buffer, bufferSource;
+    var audio = document.getElementById("audio"),
+        playBtn = document.getElementById("play"),
+        pauseBtn = document.getElementById("pause"),
+        volumnEle = document.getElementById("volumn");
+    var audioContext, buffer, bufferSource, gainNode;
 
     // 创建audioContext上下文
     function createAudioContext() {
@@ -32,6 +32,12 @@ window.onload = function() {
         }
         fr.readAsArrayBuffer(file);
     }
+
+    // 创建GainNode节点
+    function createGainNode() {
+        gainNode = audioContext.createGain();
+    }
+
     // 创建audioNode
     function createAudioNode(buffer) {
         // 输入源节点
@@ -42,17 +48,25 @@ window.onload = function() {
         // 此时音频已经传递到音频源，可以对音频进行处理或输出。
         bufferSource.buffer = buffer;
 
-        //输出节点
+        // 创建输出节点
         let audioDestinationNode = audioContext.destination;
+        // 创建音频节点
+        createGainNode();
 
-        bufferSource.connect(audioDestinationNode);
+        // 连接音量模块
+        bufferSource.connect(gainNode);
+        // 连接输出模块
+        // bufferSource.connect(audioDestinationNode);
+
+        gainNode.connect(audioDestinationNode);
     }
-
+    
     // 文件上传
     audio.onchange = function () {
         if (audio.files.length !== 0) {
             changeBuffer(audio.files[0], (buf)=> {
                 console.log('buffer===>',buf)
+                console.log(buf.getChannelData(1))
                 buffer = buf
                 // 注意调用该方法后，无法再次调用 AudioBufferSourceNode.start 播放
                 // createAudioNode(buffer)
@@ -70,6 +84,11 @@ window.onload = function() {
     pauseBtn.addEventListener('click', (event)=> {
         bufferSource.stop();
     })
+
+    //改变音量
+    volumnEle.addEventListener('change', (event) => {
+        gainNode && (gainNode.gain.value = event.target.value / 50);
+    });
 
     function init() {
         createAudioContext();

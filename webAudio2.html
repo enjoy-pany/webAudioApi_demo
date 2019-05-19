@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .wrap {
+            width: 1000px;
+            height: 400px;
+            position: relative;
+            overflow: scroll;
+        }
+        #cavas_wrap {
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 2;
+        }
+        #canvas {
+            background-color: #000;
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <input type="file" name="" id="uploadedFile">
+    <div class="wrap">
+        <canvas id="cavas_wrap" width="1000" height="400"></canvas>
+        <canvas id='canvas' width="1000" height="400"></canvas>
+    </div>
+    
+</body>
+<script>
+    window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.msAudioContext;
+    var audioContext=new window.AudioContext();
+    try {
+        var audioContext = new window.AudioContext();
+    } catch (e) {
+        Console.log('!Your browser does not support AudioContext');
+    }
+
+    var audioInput = document.getElementById('uploadedFile');
+    var file;
+    audioInput.onchange = function(e) {
+        if (audioInput.files.length !== 0) {
+            file = e.target.files[0]
+            var fr = new FileReader();
+            fr.onload = function(er) {
+                var fileResult = er.target.result;
+                //解码成功则调用此函数，参数buffer为解码后得到的结果
+                audioContext.decodeAudioData(fileResult, function(buffer) {
+                    //调用_visualize进行下一步处理，此方法在后面定义并实现
+                    var analyser = audioContext.createAnalyser();
+                    var audioBufferSourceNode = audioContext.createBufferSource();
+                    audioBufferSourceNode.buffer = buffer;
+                    audioBufferSourceNode.connect(analyser);
+                    audioBufferSourceNode.connect(audioContext.destination);
+                    audioBufferSourceNode.start(0)
+
+                    console.log(analyser)
+                    var array = new Uint8Array(analyser.frequencyBinCount);
+                    analyser.getByteFrequencyData(array);
+                    var bufferArr = buffer.getChannelData(0)
+                    
+                    var canvas = document.getElementById('canvas');
+                    var canvas_wrap = document.getElementById('cavas_wrap');
+                    var line_width = .5;
+                    var rate = 44;
+                    canvas.width = bufferArr.length/(rate/line_width);
+                    canvas_wrap.width = bufferArr.length/(rate/line_width);
+                    ctx = canvas.getContext('2d');
+                    ctx_wrap = canvas_wrap.getContext('2d');
+                    
+
+                    ctx.beginPath();
+                    ctx.moveTo(0, 200);//起始位置
+                    ctx.lineTo(10000, 200);//停止位置
+                    for (var i = 0; i < bufferArr.length; i++) {
+                        ctx.moveTo(i*line_width, 200);//起始位置
+                        ctx.lineTo(i*line_width, 200-bufferArr[i*rate]*100);//停止位置
+                    }
+                    ctx.lineWidth=line_width;
+                    ctx.strokeStyle="rgb(102, 243, 163)";
+                    ctx.stroke();
+
+                    //画线
+                    // canvas_wrap.onclick = function(e) {
+                    //     console.log(e)
+                    //     ctx_wrap.clearRect(0, 0, canvas.width, canvas.height);
+                    //     ctx_wrap.beginPath();
+                    //     ctx_wrap.moveTo(e.offsetX, 0);//起始位置
+                    //     ctx_wrap.lineTo(e.offsetX, 400);//停止位置
+                    //     ctx_wrap.lineWidth=line_width;
+                    //     ctx_wrap.strokeStyle="rgb(102, 243, 163)";
+                    //     ctx_wrap.stroke();
+                    // }
+                    //画框
+                    var rectArr = []
+                    canvas_wrap.onmousedown = function(e) {
+                        console.log('startX====>',e.offsetX)
+                        var startX = e.offsetX
+                        canvas_wrap.onmouseup = function(e) {
+                            var endX = e.offsetX
+                            ctx_wrap.lineWidth = line_width
+                            if(endX-startX==0) {
+                                ctx_wrap.clearRect(0, 0, canvas.width, canvas.height);
+                                //重绘之前的选区
+                                for(let i in rectArr) {
+                                    ctx_wrap.fillStyle = 'rgba(255,255,255,.5)'
+                                    ctx_wrap.fillRect(rectArr[i].startX, 0, rectArr[i].endX-rectArr[i].startX, 400)
+                                }
+                                //选中判定
+                                for(let i in rectArr) {
+                                    if(startX>rectArr[i].startX && startX<rectArr[i].endX) {
+                                        console.log('选中了第'+i+'区域')
+                                    }
+                                }
+                                //画线
+                                ctx_wrap.beginPath();
+                                ctx_wrap.moveTo(e.offsetX, 0);//起始位置
+                                ctx_wrap.lineTo(e.offsetX, 400);//停止位置
+                                ctx_wrap.lineWidth=line_width;
+                                ctx_wrap.strokeStyle="rgb(102, 243, 163)";
+                                ctx_wrap.stroke();
+                            }else {
+                                ctx_wrap.fillStyle = 'rgba(255,255,255,.5)'
+                                ctx_wrap.fillRect(startX, 0, endX-startX, 400)
+                                rectArr.push({startX, endX})
+                            }
+                            console.log('endX===>', e.offsetX)
+                        }
+                    }
+
+                }, function(e) { 
+                    //这个是解码失败会调用的函数
+                    console.log("!哎玛，文件解码失败:(");
+                });
+            }
+            fr.readAsArrayBuffer(file);
+        };
+    };
+
+    
+</script>
+</html>
