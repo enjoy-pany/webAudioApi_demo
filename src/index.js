@@ -7,6 +7,7 @@ window.onload = function() {
         pauseBtn = document.getElementById("pause"),
         volumnEle = document.getElementById("volumn");
     var audioContext, buffer, bufferSource, gainNode;
+    var bufferArr = [], duration, speed, times;
 
     // 创建audioContext上下文
     function createAudioContext() {
@@ -59,6 +60,45 @@ window.onload = function() {
         // bufferSource.connect(audioDestinationNode);
 
         gainNode.connect(audioDestinationNode);
+
+        bufferSource.onended = () => {
+            bufferSource = null;
+            clearInterval(times)
+        }
+    }
+
+    // draw canvas 方法
+    function drawAudio() {
+        var canvas = document.getElementById('canvas');
+        var line_width = .5;
+        var rate = 44;
+        canvas.width = bufferArr.length/(rate/line_width);
+        var ctx = canvas.getContext('2d');
+
+        ctx.beginPath();
+        ctx.moveTo(0, 200);//起始位置
+        ctx.lineTo(10000, 200);//停止位置
+        for (var i = 0; i < bufferArr.length; i++) {
+            ctx.moveTo(i*line_width, 200);//起始位置
+            ctx.lineTo(i*line_width, 200-bufferArr[i*rate]*100);//停止位置
+        }
+        ctx.lineWidth=line_width;
+        ctx.strokeStyle="rgb(102, 243, 163)";
+        ctx.stroke();
+
+        speed = (duration*1000)/canvas.width;
+        console.log(duration,canvas.width,speed)
+
+    }
+
+    function animateRun() {
+        var left = 0;
+        var fps = 2; // 帧率
+        console.log(speed)
+        times = setInterval(function(){
+            left -= fps;
+            canvas.style.left = left + 'px'
+        },speed*fps)
     }
     
     // 文件上传
@@ -66,8 +106,11 @@ window.onload = function() {
         if (audio.files.length !== 0) {
             changeBuffer(audio.files[0], (buf)=> {
                 console.log('buffer===>',buf)
-                console.log(buf.getChannelData(1))
-                buffer = buf
+                console.log(buf.getChannelData(0))
+                buffer = buf;
+                bufferArr = buffer.getChannelData(0);
+                duration = buffer.duration
+                drawAudio();
                 // 注意调用该方法后，无法再次调用 AudioBufferSourceNode.start 播放
                 // createAudioNode(buffer)
             });
@@ -75,10 +118,10 @@ window.onload = function() {
     }
     // 点击播放
     playBtn.addEventListener('click', (event)=> {
-
         // 注意调用该方法后，无法再次调用 AudioBufferSourceNode.start播放。所以在每次播放的时候 都需要重新构建audioNode
         createAudioNode(buffer);
         bufferSource.start();
+        animateRun();
     })
     // 点击暂停
     pauseBtn.addEventListener('click', (event)=> {
