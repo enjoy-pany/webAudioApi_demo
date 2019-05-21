@@ -15,7 +15,7 @@ window.onload = function() {
         audioContext = new AudioContext();
     }
     // buffer解析函数
-    function changeBuffer(file, fn) {
+    function decodeAudioData(file, fn) {
         var fr = new FileReader();
         fr.onload = function (e) {
             var fileResult = e.target.result;
@@ -62,7 +62,6 @@ window.onload = function() {
         gainNode.connect(audioDestinationNode);
 
         bufferSource.onended = () => {
-            bufferSource = null;
             clearInterval(times)
         }
     }
@@ -104,7 +103,7 @@ window.onload = function() {
     // 文件上传
     audio.onchange = function () {
         if (audio.files.length !== 0) {
-            changeBuffer(audio.files[0], (buf)=> {
+            decodeAudioData(audio.files[0], (buf)=> {
                 console.log('buffer===>',buf)
                 console.log(buf.getChannelData(0))
                 buffer = buf;
