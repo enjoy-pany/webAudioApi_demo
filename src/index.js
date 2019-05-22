@@ -7,7 +7,7 @@ window.onload = function() {
         pauseBtn = document.getElementById("pause"),
         volumnEle = document.getElementById("volumn");
     var audioContext, buffer, bufferSource, gainNode;
-    var bufferArr = [], duration, speed, times;
+    var bufferArr, duration, speed, times;
 
     // 创建audioContext上下文
     function createAudioContext() {
@@ -107,11 +107,11 @@ window.onload = function() {
                 console.log('buffer===>',buf)
                 console.log(buf.getChannelData(0))
                 buffer = buf;
-                bufferArr = buffer.getChannelData(0);
+                bufferArr = new Float32Array(buffer.getChannelData(0));
                 duration = buffer.duration
                 drawAudio();
                 // 注意调用该方法后，无法再次调用 AudioBufferSourceNode.start 播放
-                // createAudioNode(buffer)
+                createAudioNode(buffer)
             });
         }
     }
@@ -136,5 +136,28 @@ window.onload = function() {
         createAudioContext();
     }
     init();
+
+    var arr = []
+    var floatArr = new Float32Array(5999999)
+
+    function initArr() {    
+        floatArr.map((item)=> {
+            arr.push(item)
+        })
+        console.log('init arr done')
+        
+    }
+    var testEle = document.querySelector('#testBtn')
+    testEle.onclick = function() {
+        initArr()
+        testArr()
+    }
+    
+    function testArr() {
+        var floatArr2 = floatArr.map(item=> item+=10)
+        var floatArr3 = arr.map(item=>item+=10)
+        console.log('float32array===>',floatArr2)
+        console.log('array==>',floatArr3)
+    }
 
 }
